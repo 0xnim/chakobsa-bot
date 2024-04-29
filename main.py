@@ -37,6 +37,7 @@ async def on_message(message):
         # remove !chakobsa from the message
 
         text = message.content[9:]
+        orig = text
         # to lower case
         text = text.lower()
 
@@ -99,8 +100,9 @@ async def on_message(message):
 
         # Create a discord.File object and send it
         file = discord.File(fp=io.BytesIO(img_byte_arr), filename='rendered_text.png')
-
-        await message.channel.send(file=file)
+        await message.delete()
+        mention = message.author.mention
+        await message.channel.send(f'From: {mention}\n{orig}',file=file)
 
 
 # Replace 'your_bot_token' with your actual bot token
