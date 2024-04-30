@@ -33,6 +33,10 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    if os.getenv("TEST") == "true":
+        if message.guild.id != 1114196920320139274:
+            return
+
     if message.content.startswith('!chakobsa'):
         # remove !chakobsa from the message
 
@@ -103,6 +107,11 @@ async def on_message(message):
         await message.delete()
         mention = message.author.mention
         await message.channel.send(f'From: {mention}\n{orig}',file=file)
+
+# if os.getenv("TEST") == "true":
+# then only allow commands from the test server
+# 1114196920320139274
+
 
 
 # Replace 'your_bot_token' with your actual bot token
