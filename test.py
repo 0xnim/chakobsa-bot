@@ -1,29 +1,33 @@
 from PIL import Image, ImageDraw, ImageFont
 
-# Load the target image and ensure it's in RGBA mode
-target_image = Image.open('gold1.jpg').convert('RGBA')
+# Takes 2 images, one is a texture, another is just 0,0,0 and 255,255,255 image.
+# The texture is applied to the other image where there are 255
 
-# Create a new image with the same size as the target image for the mask
-mask = Image.new('RGBA', target_image.size, (255, 255, 255, 255))
+texture = Image.open('gold1.jpg') # 2590x1940
 
-# Create a draw object for the mask
-draw = ImageDraw.Draw(mask)
+# Create image with a font
+font_path = './2021-chakobsa.ttf'
+font = ImageFont.truetype(font_path, 400)
+image = Image.new('RGB', (2590, 1940), (0, 0, 0))
+draw = ImageDraw.Draw(image)
+draw.text((50, 50), 'Hello, World!', font=font, fill=(255, 255, 255))
 
-# Specify the font and size
-font = ImageFont.truetype('./2021-chakobsa.ttf', 15)
 
-# Draw the text on the mask image
-draw.text((50, 50), "Hello World", font=font, fill=(0, 0, 0, 255))
+def apply_texture(texture, image):
+    texture = texture.convert('RGBA')
+    image = image.convert('RGBA')
+    texture_data = texture.getdata()
+    image_data = image.getdata()
+    new_data = []
+    for i in range(len(image_data)):
+        if image_data[i][0] == 255:
+            new_data.append(texture_data[i])
+        else:
+            new_data.append(image_data[i])
+    image.putdata(new_data)
+    return image
 
-# Invert the colors of the mask to create the alpha channel effect
-mask = Image.alpha_composite(mask, Image.new('RGBA', mask.size, (255, 255, 255, 0)))
+image = apply_texture(texture, image)
 
-# Ensure the target image is in RGBA mode before applying putalpha
-target_image = target_image.convert('RGBA')
-
-# Apply the mask to the target image
-target_image.putalpha(mask)
-
-# Save the result
-target_image.save('result.png')
+image.save('result.png')
 

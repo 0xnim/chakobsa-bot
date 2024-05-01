@@ -14,41 +14,49 @@ bot = discord.Bot()
 
 
 # Load your custom font
-font_path = './2021-chakobsa.ttf'
+font_community_path = './2021-chakobsa.ttf'
+font_djp_path = './Chakobsa.ttf'
 font_size = 100
-font = ImageFont.truetype(font_path, font_size)
+font_community_size = font_size*1.6
+font_djp_size = font_size
+font_community = ImageFont.truetype(font_community_path, font_community_size)
+font_djp = ImageFont.truetype(font_djp_path, font_djp_size)
 
-features = {
+features_community = {
     'liga': 1, # Enable ligatures
     'calt': 1, # Enable contextual alternates
     'kern': 1, # Enable kerning
     'salt': 0   # Disable stylistic sets
+}
+features_djp = {
+    'liga': 1, # Enable ligatures
+    'kern': 1, # Enable kerning
 }
 
 @bot.event
 async def on_ready():
     print(f'Bot is online and ready to go!')
     # await bot.sync_commands(delete_existing=True)
-    await bot.change_presence(activity=discord.Game(name="Testing"), status=discord.Status.online)
+    if os.getenv("TEST") == "true":
+        await bot.change_presence(activity=discord.Game(name="Testing"), status=discord.Status.online)
                                                     # ^ change to your liking
 
-# NOTE these are testing commands. Feel free to change them or add more.    
-@bot.command(name="gliphify", description="Sends the bot's latency.") 
-async def gliphify(ctx, text: discord.Option(str, "The text to gliphify")):
+def text_to_glyph(text, font, features):
     orig = text
     # to lower case
     text = text.lower()
 
     # Maximum line length
-    max_line_length = 800
+    max_line_length = 1600
     # Margins
-    margin_left = 40
-    margin_top = 10
+    margin_left = 110
+    margin_top = 100
     margin_right = 60
     margin_bottom = 20
 
     # Create a new image with a white background
-    img = Image.new('RGB', (max_line_length + margin_left + margin_right, 150), color=(0, 0, 0))
+    # img = Image.new('RGB', (max_line_length + margin_left + margin_right, 300), color=(0, 0, 0))
+    img = Image.new('RGB', (700,700), color=(0, 0, 0))
     d = ImageDraw.Draw(img)
 
     # Calculate the width of the text
@@ -98,8 +106,26 @@ async def gliphify(ctx, text: discord.Option(str, "The text to gliphify")):
 
     # Create a discord.File object and send it
     file = discord.File(fp=io.BytesIO(img_byte_arr), filename='rendered_text.png')
-    await ctx.respond(f'{orig}',file=file)
+    return file
+
+gliphify = bot.create_group("gliphify", "Turn text into Dinlih Glyphs")
+
+@gliphify.command()
+async def djp(ctx, text: str):
+    file = text_to_glyph(text, font_djp, features_djp)
+    await ctx.respond(f'{text}', file=file)
+
+@gliphify.command()
+async def community(ctx, text: str):
+    file = text_to_glyph(text, font_community, features_community)
+    await ctx.respond(f'{text}', file=file)
 
 
+@bot.message_command(name="Gliphify", description = "Turns message into Dinlih Glyphs")
+async def message_gliphify(ctx: discord.ApplicationContext, message: discord.Message):
+    text = message.content
+    font = font_community
+    file = text_to_glyph(textu, font) 
+    await ctx.respond(f'{text}',file=file)
 
 bot.run(bot_token)
