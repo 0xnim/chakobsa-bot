@@ -1,6 +1,8 @@
 import re
 import urllib.request
 
+import html2text
+
 
 def get_chakobsa_lemma_lookup() -> dict[str, str]:
     """
@@ -28,8 +30,6 @@ def get_chakobsa_lemma_lookup() -> dict[str, str]:
         )
     )
 
-    print(f"Lookup was:\n{lookup}")
-
     return lookup
 
 
@@ -40,9 +40,12 @@ def get_chakobsa_page(word: str) -> str:
     @return The wiki page in HTML, or an empty string if the page is not found
     """
     lookup = get_chakobsa_lemma_lookup()
-    route = lookup[word]
-    if not route:
-        # Didn't find the route for the page, early out
+    route = ""
+
+    try:
+        route = lookup[word]
+    except:
+        # Failed the lookup, route/word doesn't exist
         return ""
 
     # We found the word, request the page
@@ -81,28 +84,50 @@ def get_page(word: str, in_chakobsa=True) -> str:
     return contents
 
 
-def parse_page(text: str) -> dict[str, str]:
+def parse_page(text: str) -> str:
     """
     Parse a wiki page returning only the relevant Chakobsa section fields and
     their values
     @param text The html text of the page to parse
-    @return A dictionary containing the the Chakobsa sections and their values,
-            hierarchically
+    @return A plaintext formatting of the Chakobsa sections and their values
     """
     if not text:
-        return {"Error": "Unable to find page matching that word."}
+        return "Error: Unable to find page matching that word."
 
-    return {}
+    # Get only the relevant section
+    match = re.search(
+        r'<h2><span class="mw-headline" id="Chakobsa"><a href="\/index\.php\?title=Chakobsa_language" title="Chakobsa language">Chakobsa<\/a><\/span><\/h2>(.*?)<!--',
+        text,
+        re.MULTILINE | re.DOTALL,
+    )
 
+    if not match:
+        return "Error: Unable to parse definition page."
 
-def format_definition(sections: dict[str, str]) -> str:
-    """
-    Format a series of sections and values in plaintext as a word definition.
-    @param sections The sections of the Chakobsa part of the wiki page and
-                    their values
-    @return The formatted sections as a plaintext definition
-    """
-    return ""
+    # Just the text
+    body = match[1]
+
+    body = re.sub(r"<table.*</table>", "", body, flags=re.MULTILINE | re.DOTALL)
+
+    # Parse and prettify
+    text_maker = html2text.HTML2Text()
+    text_maker.unicode_snob = True
+    text_maker.ignore_tables = True
+    text_maker.ignore_links = True
+    text_maker.body_width = 0
+
+    formatted = text_maker.handle(body)
+
+    # Clean up output by removing...
+    # ... More than one consecutive newline
+    formatted = re.sub(r"\s{2,}", "\n", formatted, flags=re.MULTILINE | re.DOTALL)
+    # ... High level headers
+    formatted = re.sub(r"^##", "", formatted, flags=re.MULTILINE)
+    # ... Extraneous header
+    formatted = re.sub(
+        r"^#+ Inflection\n", "", formatted, flags=re.MULTILINE | re.DOTALL
+    )
+    return formatted
 
 
 def get_definition(word: str, in_chakobsa=True) -> str:
@@ -112,9 +137,9 @@ def get_definition(word: str, in_chakobsa=True) -> str:
     @param in_chakobsa  Is the word parameter in Chakobsa?
     """
     page_text = get_page(word, in_chakobsa)
-    sections = parse_page(page_text)
-    return format_definition(sections)
+    formatted = parse_page(page_text)
+    return formatted
 
 
 if __name__ == "__main__":
-    print(f"Lookup for Zama returned:\n{get_chakobsa_page('zama')}")
+    print(get_definition("qithala"))
