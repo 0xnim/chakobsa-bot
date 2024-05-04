@@ -16,8 +16,8 @@ bot = discord.Bot()
 # Load your custom font
 font_community_path = './2021-chakobsa.ttf'
 font_djp_path = './Chakobsa.ttf'
-font_size = 100
-font_community_size = font_size*1.6
+font_size = 80
+font_community_size = font_size*1.5
 font_djp_size = font_size
 font_community = ImageFont.truetype(font_community_path, font_community_size)
 font_djp = ImageFont.truetype(font_djp_path, font_djp_size)
@@ -47,16 +47,16 @@ def text_to_glyph(text, font, features):
     text = text.lower()
 
     # Maximum line length
-    max_line_length = 1600
+    max_line_length = 1200
     # Margins
-    margin_left = 110
-    margin_top = 100
-    margin_right = 60
-    margin_bottom = 20
+    margin_left = 100
+    margin_top = 50
+    margin_right = 100
+    margin_bottom = 80
 
     # Create a new image with a white background
     # img = Image.new('RGB', (max_line_length + margin_left + margin_right, 300), color=(0, 0, 0))
-    img = Image.new('RGB', (700,700), color=(0, 0, 0))
+    img = Image.new('RGB', (1200,200), color=(0, 0, 0))
     d = ImageDraw.Draw(img)
 
     # Calculate the width of the text
@@ -85,7 +85,7 @@ def text_to_glyph(text, font, features):
             lines.append(' '.join(current_line))
 
         # Adjust the image height based on the number of lines
-        img_height = len(lines) * font_size + margin_top + margin_bottom
+        img_height = len(lines) * (font_size + 10) + margin_top + margin_bottom
         img = Image.new('RGB', (max_line_length + margin_left + margin_right, img_height), color=(0, 0, 0))
         d = ImageDraw.Draw(img)
 
@@ -93,7 +93,7 @@ def text_to_glyph(text, font, features):
         y = margin_top
         for line in lines:
             d.text((margin_left, y), line, font=font, fill=(255, 255, 255), features=features)
-            y += font_size
+            y += font_size + 10
 
     else:
         # Render the text if it fits within the maximum line length
@@ -125,7 +125,7 @@ async def community(ctx, text: str):
 async def message_gliphify(ctx: discord.ApplicationContext, message: discord.Message):
     text = message.content
     font = font_community
-    file = text_to_glyph(textu, font) 
+    file = text_to_glyph(text, font, features_community) 
     await ctx.respond(f'{text}',file=file)
 
 bot.run(bot_token)
