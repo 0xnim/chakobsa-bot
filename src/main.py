@@ -5,6 +5,8 @@ import os
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageFont
 
+from definitions import get_definition
+
 load_dotenv()
 
 bot_token = os.getenv("BOT_TOKEN")
@@ -20,7 +22,7 @@ font_djp_path = "../fonts/Chakobsa.ttf"
 font_size = 80
 font_community_size = font_size * 1.5
 font_djp_size = font_size
-font_community = ImageFont.truetype(font_community_path, font_community_size)
+font_community = ImageFont.truetype(font_community_path, int(font_community_size))
 font_djp = ImageFont.truetype(font_djp_path, font_djp_size)
 
 features_community = {
@@ -47,7 +49,6 @@ async def on_ready():
 
 
 def text_to_glyph(text, font, features):
-    orig = text
     # to lower case
     text = text.lower()
 
@@ -151,6 +152,11 @@ async def message_gliphify(ctx: discord.ApplicationContext, message: discord.Mes
     font = font_community
     file = text_to_glyph(text, font, features_community)
     await ctx.respond(f"{text}", file=file)
+
+
+@bot.command(description="Pulls the definition of a Chakobsa word from DJP's wiki")
+async def definition(ctx, word: str):
+    await ctx.respond(f"{get_definition(word)}")
 
 
 bot.run(bot_token)
