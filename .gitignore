@@ -1,2 +1,5 @@
 .env
 myenv
+*.nix
+*.png
+*.jpg
