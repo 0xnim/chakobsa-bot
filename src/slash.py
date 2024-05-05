@@ -15,8 +15,8 @@ bot = discord.Bot()
 
 
 # Load your custom font
-font_community_path = "./2021-chakobsa.ttf"
-font_djp_path = "./Chakobsa.ttf"
+font_community_path = "../fonts/2021-chakobsa.ttf"
+font_djp_path = "../fonts/Chakobsa.ttf"
 font_size = 80
 font_community_size = font_size * 1.5
 font_djp_size = font_size
